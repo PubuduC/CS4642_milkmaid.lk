@@ -9,6 +9,9 @@ class RecipesSpider(scrapy.Spider):
     def parse(self, response):
         for inner_col in response.css('div.inner_col'):
             yield response.follow(inner_col.css('a::attr(href)').extract_first(), callback=self.parse_page)
+        next_page = response.css('ul.pagination li.next a::attr(href)').extract_first()
+        if next_page is not None:
+            yield response.follow(next_page, callback=self.parse)
     def parse_page(self, response):
         yield {
             'name': response.css('h2.recipe_name::text').extract_first(),
@@ -19,4 +22,8 @@ class RecipesSpider(scrapy.Spider):
             'vote' : response.css('div.heart_widget li::text').extract_first(),
             'ingredients' : response.css('div.row.ingredient_row div.row.ingredient').extract(),
             'directions' : response.css('div.direction div.row').extract(),
+            'nutritional_facts' : response.css('div.row.nutritional_fact p').extract(),
+            'nutritional_info' : response.css('div.row.nutritional_row div.row.nutritional').extract(),
         }
+
+
